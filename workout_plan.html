@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f0f">
+<title>Workout Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #222222;
+    --border: rgba(255,255,255,0.08); --text: #f0f0ee;
+    --muted: #888884; --hint: #555552;
+    --w1: #378ADD; --w1-dim: rgba(55,138,221,0.12);
+    --w2: #7F77DD; --w2-dim: rgba(127,119,221,0.12);
+    --w3: #D85A30; --w3-dim: rgba(216,90,48,0.12);
+    --amber: #EF9F27;
+  }
+  html { background: var(--bg); }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 40px; }
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; }
+  .nav-title { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .nav-tabs { display: flex; gap: 6px; }
+  .tab { font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .tab.active-w1 { background: var(--w1-dim); border-color: var(--w1); color: var(--w1); }
+  .tab.active-w2 { background: var(--w2-dim); border-color: var(--w2); color: var(--w2); }
+  .tab.active-w3 { background: var(--w3-dim); border-color: var(--w3); color: var(--w3); }
+  .workout { display: none; padding: 0 12px; }
+  .workout.active { display: block; }
+  .workout-header { padding: 24px 4px 16px; display: flex; align-items: baseline; gap: 10px; }
+  .workout-name { font-size: 28px; font-weight: 300; color: var(--text); }
+  .workout-accent { width: 6px; height: 6px; border-radius: 50%; margin-bottom: 4px; flex-shrink: 0; }
+  .w1 .workout-accent { background: var(--w1); }
+  .w2 .workout-accent { background: var(--w2); }
+  .w3 .workout-accent { background: var(--w3); }
+  .section { margin-bottom: 20px; }
+  .section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hint); padding: 0 4px 8px; }
+  .warmup-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
+  .warmup-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 13px; color: var(--muted); }
+  .warmup-pill span { color: var(--hint); font-size: 11px; margin-left: 6px; }
+  .ex-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 8px; overflow: hidden; }
+  .ex-main { display: grid; grid-template-columns: 36px 1fr; }
+  .ex-order { display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--hint); border-right: 1px solid var(--border); padding: 14px 0; }
+  .ex-body { padding: 12px 14px; }
+  .ex-name { font-size: 15px; font-weight: 400; color: var(--text); margin-bottom: 8px; }
+  .ex-stats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .stat { display: flex; flex-direction: column; background: var(--surface2); border-radius: 8px; padding: 5px 10px; min-width: 48px; }
+  .stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hint); margin-bottom: 2px; }
+  .stat-value { font-size: 13px; font-weight: 500; color: var(--text); font-family: 'DM Mono', monospace; }
+  .stat-value.load { color: var(--amber); }
+  .ex-note { margin-top: 10px; padding: 8px 10px; background: var(--surface2); border-radius: 8px; font-size: 12px; color: var(--muted); line-height: 1.5; border-left: 2px solid var(--hint); }
+  .cond-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
+  .cond-row { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); gap: 8px; }
+  .cond-row:last-child { border-bottom: none; }
+  .cond-name { font-size: 14px; color: var(--text); }
+  .cond-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .cond-tag { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); background: var(--surface2); padding: 3px 8px; border-radius: 6px; }
+  .cond-tag.load { color: var(--amber); }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <span class="nav-title">My Plan</span>
+  <div class="nav-tabs">
+    <button class="tab active-w1" onclick="show(1)">W1</button>
+    <button class="tab" onclick="show(2)">W2</button>
+    <button class="tab" onclick="show(3)">W3</button>
+  </div>
+</nav>
+
+<!-- WORKOUT 1 -->
+<div class="workout w1 active" id="w1">
+  <div class="workout-header"><div class="workout-accent"></div><div class="workout-name">Workout 1</div></div>
+  <div class="section">
+    <div class="section-label">Warm up</div>
+    <div class="warmup-row">
+      <div class="warmup-pill">Foam roll <span>ITB, quads, glutes, calves</span></div>
+      <div class="warmup-pill">Stretch <span>Hip flexors</span></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-label">Main session</div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">A1</div><div class="ex-body"><div class="ex-name">Seated leg curl</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">6–8</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">2011</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">22.5kg</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">A2</div><div class="ex-body"><div class="ex-name">DB straight leg deadlift</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">10–12</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">3010</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">10kg ea</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">90s</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">B1</div><div class="ex-body"><div class="ex-name">FFE split squat</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">6–8</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">3010</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">10kg ea</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">B2</div><div class="ex-body"><div class="ex-name">Sled push</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">2 len</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">60kg</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">90s</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">C1</div><div class="ex-body"><div class="ex-name">Lean away / upright lat pulldown</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">8/8</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">2010</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">35kg</span></div></div><div class="ex-note">8 reps leant back, then immediately 8 reps upright</div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">C2</div><div class="ex-body"><div class="ex-name">DB pullover</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">10–12</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">3010</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">12.5kg</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">90s</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">D</div><div class="ex-body"><div class="ex-name">Dips</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">4</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">6–8</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">2010</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">25kg</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">60s</span></div></div></div></div></div>
+  </div>
+  <div class="section">
+    <div class="section-label">Conditioning / Cardio</div>
+    <div class="cond-card">
+      <div class="cond-row"><div class="cond-name">Planks</div><div class="cond-meta"><span class="cond-tag">3 sets</span><span class="cond-tag">60s</span></div></div>
+      <div class="cond-row"><div class="cond-name">Ski erg</div><div class="cond-meta"><span class="cond-tag">4 sets</span><span class="cond-tag">150m</span><span class="cond-tag">rest 75s</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKOUT 2 -->
+<div class="workout w2" id="w2">
+  <div class="workout-header"><div class="workout-accent"></div><div class="workout-name">Workout 2</div></div>
+  <div class="section">
+    <div class="section-label">Warm up</div>
+    <div class="warmup-row">
+      <div class="warmup-pill">Foam roll <span>ITB, quads, glutes, calves</span></div>
+      <div class="warmup-pill">Stretch <span>Hip flexors</span></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-label">Main session</div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">A1</div><div class="ex-body"><div class="ex-name">Single leg leg curl</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">6–8</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">2011</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">5kg</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">A2</div><div class="ex-body"><div class="ex-name">Sumo squats</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">10–12</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">3010</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">15kg</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">90s</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">B</div><div class="ex-body"><div class="ex-name">45 degree leg press</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">4</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">8/8/8</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">10kg ea</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">75s</span></div></div><div class="ex-note">8 reps narrow, 8 reps medium, 8 reps wide = 1 set</div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">C1</div><div class="ex-body"><div class="ex-name">Rear delt flyes</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">12–15</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">8kg</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">C2</div><div class="ex-body"><div class="ex-name">DB push press</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">8–10</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">7kg</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">90s</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">D1</div><div class="ex-body"><div class="ex-name">Chin ups</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">6–8</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">2011</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">25kg</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">D2</div><div class="ex-body"><div class="ex-name">Cable face pulls</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">12–15</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">2011</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">30</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">75s</span></div></div></div></div></div>
+  </div>
+  <div class="section">
+    <div class="section-label">Conditioning / Cardio</div>
+    <div class="cond-card">
+      <div class="cond-row"><div class="cond-name">Prone cobra</div><div class="cond-meta"><span class="cond-tag">3 sets</span><span class="cond-tag">30s</span></div></div>
+      <div class="cond-row"><div class="cond-name">Battle ropes</div><div class="cond-meta"><span class="cond-tag">5 sets</span><span class="cond-tag">30s</span><span class="cond-tag">rest 75s</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKOUT 3 -->
+<div class="workout w3" id="w3">
+  <div class="workout-header"><div class="workout-accent"></div><div class="workout-name">Workout 3</div></div>
+  <div class="section">
+    <div class="section-label">Warm up</div>
+    <div class="warmup-row">
+      <div class="warmup-pill">Foam roll <span>ITB, quads, glutes, calves</span></div>
+      <div class="warmup-pill">Stretch <span>Hip flexors</span></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-label">Main session</div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">A</div><div class="ex-body"><div class="ex-name">Trap bar deadlifts</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">4–5</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">6–8</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">50kg</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">90s</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">B1</div><div class="ex-body"><div class="ex-name">Bulgarian split squat</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">6–8</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">2010</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">15kg</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">B2</div><div class="ex-body"><div class="ex-name">Step ups</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">6–8</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">12.5kg ea</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">90s</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">C</div><div class="ex-body"><div class="ex-name">Cable seated row MR</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">2</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">4×6</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">33kg</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">2 min</span></div></div><div class="ex-note">4 reps, rest 10 secs — repeat 6 times. Rest 2 mins then do another set.</div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">D1</div><div class="ex-body"><div class="ex-name">DB chest flyes</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">8</span></div><div class="stat"><span class="stat-label">Tempo</span><span class="stat-value">2010</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">8kg ea</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">D2</div><div class="ex-body"><div class="ex-name">DB hex press</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">12</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">8kg ea</span></div></div></div></div></div>
+    <div class="ex-card"><div class="ex-main"><div class="ex-order">D3</div><div class="ex-body"><div class="ex-name">Bench dips</div><div class="ex-stats"><div class="stat"><span class="stat-label">Sets</span><span class="stat-value">3</span></div><div class="stat"><span class="stat-label">Reps</span><span class="stat-value">15</span></div><div class="stat"><span class="stat-label">Load</span><span class="stat-value load">BW</span></div><div class="stat"><span class="stat-label">Rest</span><span class="stat-value">90s</span></div></div></div></div></div>
+  </div>
+  <div class="section">
+    <div class="section-label">Conditioning / Cardio</div>
+    <div class="cond-card">
+      <div class="cond-row"><div class="cond-name">Farmers walk</div><div class="cond-meta"><span class="cond-tag">4–6 sets</span><span class="cond-tag">45s</span><span class="cond-tag load">20kg ea</span></div></div>
+      <div class="cond-row"><div class="cond-name">Slam balls</div><div class="cond-meta"><span class="cond-tag">4–6 sets</span><span class="cond-tag">30s</span><span class="cond-tag load">12kg</span><span class="cond-tag">rest 60s</span></div></div>
+    </div>
+  </div>
+</div>
+
+<div style="height: max(20px, env(safe-area-inset-bottom))"></div>
+<script>
+  function show(n) {
+    document.querySelectorAll('.workout').forEach(w => w.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.className = 'tab');
+    document.getElementById('w' + n).classList.add('active');
+    document.querySelectorAll('.tab')[n-1].classList.add('active-w' + n);
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>
